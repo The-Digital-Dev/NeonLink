@@ -1,0 +1,4 @@
+*
+!package.json
+!app/**
+!scripts/leak_scan.mjs

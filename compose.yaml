@@ -1,0 +1,51 @@
+# Local preview with the sample profile "Alex Rivera" (an invented person; the avatar is an illustration).
+# Builds the image from this checkout. Edit the environment values and restart to change the page.
+#   docker compose up -d --build   ->  http://127.0.0.1:4191/
+# To run the published image instead, replace the build: block with
+#   image: ghcr.io/the-digital-dev/neonlink:latest
+name: neonlink-local
+
+services:
+  web:
+    build:
+      context: .
+      args:
+        SOURCE_REVISION: ${SOURCE_REVISION:-development}
+    image: neonlink:local
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    ports:
+      - "127.0.0.1:${HOST_PORT:-4191}:3000"
+    volumes:
+      # The sample avatar. Put your own avatar.jpg (or .png, .webp, .svg) in a folder and mount it here.
+      - ./examples/media:/app/media:ro
+    environment:
+      NAME: Alex Rivera
+      BIO: Builder | Writer | Night owl
+      LEDE: I make small, useful things for the web and write about how they work.
+      LOCATION: Lisbon
+      THEME: ${THEME:-neon}
+      CUSTOM_BUTTON_NAME: PORTFOLIO,NEWSLETTER
+      CUSTOM_BUTTON_URL: https://example.com/,https://example.com/newsletter
+      CUSTOM_BUTTON_TEXT: See my work,Read the newsletter
+      CUSTOM_BUTTON_NOTE: Projects\, case studies and experiments,One email a month
+      CUSTOM_BUTTON_ICON: /assets/icons/generic-website.svg,/assets/icons/generic-rss.svg
+      LINKED_IN: https://www.linkedin.com/
+      LINKED_IN_TEXT: Connect on LinkedIn
+      LINKED_IN_NOTE: Work history and writing
+      GITHUB: https://github.com/
+      MASTODON: https://mastodon.social/
+      YOUTUBE: https://www.youtube.com/
+      INSTAGRAM: https://www.instagram.com/
+      SPOTIFY: https://open.spotify.com/
+      DISCORD: https://discord.com/
+      BLUESKY: https://bsky.app/
+      FEATURED_LABEL: Featured // start here
+      EMAIL: hello@example.com
+      EMAIL_TEXT: Email me
+      PRIMARY_BUTTONS: PORTFOLIO,LINKED_IN,NEWSLETTER,EMAIL
+      BUTTON_ORDER: PORTFOLIO,LINKED_IN,NEWSLETTER,EMAIL,INSTAGRAM,YOUTUBE,GITHUB,MASTODON,SPOTIFY,DISCORD,BLUESKY
+      FOOTER_TITLE: Configured with Compose
+      FOOTER: This page is configured entirely with Docker Compose environment variables.

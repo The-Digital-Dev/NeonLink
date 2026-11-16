@@ -1,0 +1,43 @@
+name: Bug report
+description: Something on the page or in the container does not work as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for the report. Please remove personal data and secrets from anything you paste.
+  - type: input
+    id: version
+    attributes:
+      label: Version or image
+      description: Image tag or digest, or the commit you built from.
+      placeholder: ghcr.io/the-digital-dev/neonlink:0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: theme
+    attributes:
+      label: Theme
+      options: [neon, neural, opening-bell, all]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: Relevant environment variables
+      description: Only the variables involved, with example values.
+      render: yaml
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce, browser and screen width
+  - type: textarea
+    id: logs
+    attributes:
+      label: Container log lines
+      render: text

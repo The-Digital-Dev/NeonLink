@@ -1,0 +1,36 @@
+{
+  "name": "neonlink",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Self-hosted link-in-bio page with neon, AI and investing themes, configured entirely by environment variables",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node app/server.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "check": "node scripts/check_repository.mjs",
+    "demo": "node scripts/export_static.mjs --out dist/demo"
+  },
+  "author": "Digital Dev",
+  "homepage": "https://github.com/The-Digital-Dev/neonlink",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/The-Digital-Dev/neonlink.git"
+  },
+  "bugs": {
+    "url": "https://github.com/The-Digital-Dev/neonlink/issues"
+  },
+  "keywords": [
+    "link-in-bio",
+    "linktree-alternative",
+    "littlelink",
+    "self-hosted",
+    "docker",
+    "homelab",
+    "cyberpunk",
+    "link-page"
+  ]
+}
