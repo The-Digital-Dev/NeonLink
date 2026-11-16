@@ -4,11 +4,14 @@
 //     plus a private block list when NEONLINK_LEAK_TERMS names one (kept outside this repository).
 //  2. Every environment variable the app reads is documented (README.md or docs/configuration.md).
 //  3. No secret-looking files or private keys are committed.
+//  4. compose.yaml lists every setting the app reads and every built-in platform (active or commented out).
+//  5. Compose values that YAML would misread are quoted.
 import { readFileSync, readdirSync, lstatSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadTerms, loadSkips, scanTree, THIRD_PARTY } from './leak_scan.mjs';
+import { PLATFORMS } from '../app/platforms.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const problems = [];
@@ -51,7 +54,7 @@ const readme = ['README.md', 'docs/configuration.md'].filter((f) => files.includ
 const config = text('app/config.mjs') + text('app/server.mjs');
 const used = new Set();
 for (const m of config.matchAll(/(?:str|opt|flag)\(env, '([A-Z0-9_]+)'/g)) used.add(m[1]);
-for (const m of config.matchAll(/env\.([A-Z][A-Z0-9_]+)/g)) used.add(m[1]);
+for (const m of config.matchAll(/(?:env|rawEnv)\.([A-Z][A-Z0-9_]+)/g)) used.add(m[1]);
 for (const v of used) if (!new RegExp(`\`${v}\``).test(readme)) problems.push(`docs/configuration.md: environment variable ${v} is not documented`);
 for (const suffix of ['_TEXT', '_NOTE', '_ICON']) if (!readme.includes(`\`<PLATFORM>${suffix}\``)) problems.push(`docs/configuration.md: per-platform ${suffix} is not documented`);
 
@@ -60,6 +63,15 @@ for (const f of files) {
   if (/(^|\/)\.env(\.|$)/.test(f) && !f.endsWith('.env.example')) problems.push(`${f}: environment file must not be committed`);
   if (/\.(pem|key|p12|pfx)$/i.test(f)) problems.push(`${f}: key material must not be committed`);
   if (isText(f) && /-----BEGIN [A-Z ]*PRIVATE KEY-----/.test(text(f))) problems.push(`${f}: contains a private key`);
+}
+
+// 4. compose.yaml is the user's menu: every setting appears there, switched on or as a "# KEY:" line.
+if (files.includes('compose.yaml')) {
+  const compose = text('compose.yaml');
+  const listed = new Set([...compose.matchAll(/^ {6}(?:# ?)?([A-Z][A-Z0-9_]*):/gm)].map((m) => m[1]));
+  const wanted = [...used, ...PLATFORMS.map((p) => p.key), ...['URL', 'TEXT', 'NAME', 'NOTE', 'ICON', 'COLOR', 'ALT'].map((f) => `LINK_1_${f}`)];
+  for (const v of wanted) if (!listed.has(v)) problems.push(`compose.yaml: ${v} is not listed (add it, commented out with its default)`);
+  for (const suffix of ['_TEXT', '_NOTE', '_ICON']) if (!compose.includes(`<PLATFORM>${suffix}`)) problems.push(`compose.yaml: per-platform ${suffix} is not explained`);
 }
 
 // 5. Compose values that YAML would misread: an unquoted value starting with an indicator character.

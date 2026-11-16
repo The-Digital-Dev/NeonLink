@@ -63,10 +63,29 @@ test('static export: every theme is written with relative assets', async (t) => 
   }
 });
 
-test('docs/platforms.md matches the platform catalogue', async () => {
-  const { platformDocs } = await import('../scripts/build_platform_docs.mjs');
+test('docs/platforms.md and the compose.yaml catalogue match the platform catalogue', async () => {
+  const { platformDocs, composeWithCatalogue } = await import('../scripts/build_platform_docs.mjs');
   const { readFileSync } = await import('node:fs');
   assert.equal(readFileSync(new URL('../docs/platforms.md', import.meta.url), 'utf8'), platformDocs(), 'run node scripts/build_platform_docs.mjs');
+  const compose = readFileSync(new URL('../compose.yaml', import.meta.url), 'utf8');
+  assert.equal(compose, composeWithCatalogue(compose), 'run node scripts/build_platform_docs.mjs');
+});
+
+test('compose.yaml: commented-out settings are not values, trailing comments are not part of a value', async () => {
+  const { composeEnvironmentText } = await import('./helpers.mjs');
+  const env = composeEnvironmentText([
+    'services:', '  web:', '    environment:',
+    '      NAME: Alex Rivera        # your name',
+    '      # BIO: Not used',
+    '      THEME_COLOR: "#07060D"   # quoted, so the # is kept',
+    "      SIGIL: 'A#'",
+    '      BOOT_PROMPT: me@x:~$$',
+    '      SHARE:                   # null in YAML: Compose passes nothing',
+    '      AVATAR_BADGE: ""',
+    '      # END platform catalogue',
+    '  other:',
+  ].join('\n'));
+  assert.deepEqual(env, { NAME: 'Alex Rivera', THEME_COLOR: '#07060D', SIGIL: 'A#', BOOT_PROMPT: 'me@x:~$', AVATAR_BADGE: '' });
 });
 
 test('showcase: every platform is switched on with example data only', async () => {

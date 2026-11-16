@@ -2,16 +2,22 @@
 import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 
-export function composeEnvironment(file) {
+// Commented-out lines ("# KEY: value") are not values, so the settings catalogue in compose.yaml is skipped.
+export const composeEnvironment = (file) => composeEnvironmentText(readFileSync(file, 'utf8'));
+
+export function composeEnvironmentText(text) {
   const env = {};
   let inEnv = false;
-  for (const raw of readFileSync(file, 'utf8').split('\n')) {
+  for (const raw of text.split('\n')) {
     if (/^\s{4}environment:\s*$/.test(raw)) { inEnv = true; continue; }
     if (inEnv && /^\s{0,4}\S/.test(raw) && !/^\s{6}/.test(raw)) inEnv = false;
     if (!inEnv) continue;
     const m = /^\s{6}([A-Z0-9_]+):\s?(.*)$/.exec(raw);
     if (!m) continue;
-    let v = m[2].trim();
+    // "KEY:" with nothing after it is null in YAML: Compose passes the shell's value or nothing at all.
+    if (m[2].replace(/(^|\s)#.*$/, '').trim() === '') continue;
+    // A trailing " # comment" is not part of the value (YAML), unless the value is quoted.
+    let v = /^["']/.test(m[2].trim()) ? m[2].trim().replace(/^("(?:[^"\\]|\\.)*"|'(?:[^']|'')*')\s+#.*$/, '$1') : m[2].replace(/\s+#.*$/, '').trim();
     if (/^".*"$/.test(v)) v = v.slice(1, -1).replace(/\\"/g, '"').replace(/\\\\/g, '\\');
     else if (/^'.*'$/.test(v)) v = v.slice(1, -1).replace(/''/g, "'");
     // ${VAR:-default} takes its default, as Compose does when VAR is unset.

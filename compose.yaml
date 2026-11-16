@@ -1,40 +1,52 @@
-# Local preview with the sample profile "Alex Rivera" (an invented person; the avatar is an illustration).
-# Builds the image from this checkout. Edit the environment values and restart to change the page.
-#   docker compose up -d --build   ->  http://127.0.0.1:4191/
-# To run the published image instead, replace the build: block with
-#   image: ghcr.io/the-digital-dev/neonlink:latest
-name: neonlink-local
+# NeonLink: your link-in-bio page, configured entirely in this file.
+#
+#   1. Save this file in a new folder with an empty "media" folder next to it, and edit the values
+#      below (the sample is Alex Rivera, an invented person).
+#   2. Run:  docker compose up -d       then open http://127.0.0.1:8080/
+#      (port 8080 taken? put HOST_PORT=8090 in a .env file next to this one)
+#   3. After every edit, run  docker compose up -d  again and reload the page.
+#
+# Every setting NeonLink reads is listed in this file. Lines starting with "#" are switched off and
+# show the default. To use one, delete the "# " (hash and space) so the name lines up with NAME.
+# All settings are optional. To hide something, set it to empty quotes: AVATAR_BADGE: ""
+#   Lists are comma-separated; write \, for a comma inside an item.  Write $$ for a literal $.
+#   Quote values that start with # { [ | > * & ! % @ or ` (for example colours: "#F1641E").
+# Full reference: https://github.com/The-Digital-Dev/NeonLink/blob/main/docs/configuration.md
+# Developers: compose.dev.yaml builds the image from a checkout instead (make up).
+name: neonlink
 
 services:
-  web:
-    build:
-      context: .
-      args:
-        SOURCE_REVISION: ${SOURCE_REVISION:-development}
-    image: neonlink:local
+  links:
+    image: ghcr.io/the-digital-dev/neonlink:latest   # or pin a version, for example :0.1.0
     restart: unless-stopped
     read_only: true
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
     ports:
-      - "127.0.0.1:${HOST_PORT:-4191}:3000"
+      # Only this computer can open the page. Behind a reverse proxy, see docs/deploying.md.
+      - "127.0.0.1:${HOST_PORT:-8080}:3000"
     volumes:
-      # The sample avatar. Put your own avatar.jpg (or .png, .webp, .svg) in a folder and mount it here.
-      - ./examples/media:/app/media:ro
+      # Your pictures: put avatar.jpg (or .png, .webp, .svg) and favicon.svg in the "media" folder next
+      # to this file. Without them NeonLink draws an initials avatar and favicon. Create the folder
+      # yourself first: if Docker creates it, it belongs to root on Linux.
+      - ./media:/app/media:ro
     environment:
-      NAME: Alex Rivera
-      BIO: Builder | Writer | Night owl
-      LEDE: I make small, useful things for the web and write about how they work.
-      LOCATION: Lisbon
-      THEME: ${THEME:-neon}
+      # ---- The sample profile: change these first ---------------------------------------------
+      NAME: Alex Rivera                     # your name: heading, page title and footer
+      BIO: Builder | Writer | Night owl     # taglines under the name, separated by |
+      LEDE: I make small, useful things for the web and write about how they work.   # a sentence or two
+      LOCATION: Lisbon                      # short place name (Neural and Opening Bell status pill)
+      THEME: neon                           # the design: neon, neural or opening-bell
+      # Custom links: items in the same position belong together (see "Custom links" below).
       CUSTOM_BUTTON_NAME: PORTFOLIO,NEWSLETTER
       CUSTOM_BUTTON_URL: https://example.com/,https://example.com/newsletter
       CUSTOM_BUTTON_TEXT: See my work,Read the newsletter
       CUSTOM_BUTTON_NOTE: Projects\, case studies and experiments,One email a month
       CUSTOM_BUTTON_ICON: /assets/icons/generic-website.svg,/assets/icons/generic-rss.svg
+      # Built-in platforms: the variable is the link. Every one is listed at the bottom of this file.
       LINKED_IN: https://www.linkedin.com/
-      LINKED_IN_TEXT: Connect on LinkedIn
-      LINKED_IN_NOTE: Work history and writing
+      LINKED_IN_TEXT: Connect on LinkedIn   # <PLATFORM>_TEXT: your own label for that link
+      LINKED_IN_NOTE: Work history and writing   # <PLATFORM>_NOTE: small second line (primary list)
       GITHUB: https://github.com/
       MASTODON: https://mastodon.social/
       YOUTUBE: https://www.youtube.com/
@@ -42,10 +54,294 @@ services:
       SPOTIFY: https://open.spotify.com/
       DISCORD: https://discord.com/
       BLUESKY: https://bsky.app/
-      FEATURED_LABEL: Featured // start here
-      EMAIL: hello@example.com
+      EMAIL: hello@example.com              # a plain address; mailto: is added for you
       EMAIL_TEXT: Email me
-      PRIMARY_BUTTONS: PORTFOLIO,LINKED_IN,NEWSLETTER,EMAIL
+      # Layout: which links are large cards, which one is featured, and the order.
+      PRIMARY_BUTTONS: PORTFOLIO,LINKED_IN,NEWSLETTER,EMAIL   # large cards; the rest form the compact grid
+      FEATURED_LABEL: Featured // start here   # small line above the featured card
       BUTTON_ORDER: PORTFOLIO,LINKED_IN,NEWSLETTER,EMAIL,INSTAGRAM,YOUTUBE,GITHUB,MASTODON,SPOTIFY,DISCORD,BLUESKY
-      FOOTER_TITLE: Configured with Compose
-      FOOTER: This page is configured entirely with Docker Compose environment variables.
+      FOOTER_TITLE: Configured with Compose  # footer heading
+      FOOTER: This page is configured entirely with Docker Compose environment variables.   # footer text
+
+      # ---- Profile picture and initials ------------------------------------------------------
+      # AVATAR_URL: /media/me.jpg           # picture: a full URL or /media/<file>; default media/avatar.*, then initials
+      # AVATAR_2X_URL: /media/me@2x.jpg     # optional sharper picture for high-resolution screens
+      # AVATAR_ALT: Portrait of Alex Rivera # alternative text; default "Portrait of <NAME>"
+      # AVATAR_BADGE: ONLINE                # small badge on the picture; "" hides it
+      # SIGIL: AR                           # up to 3 letters for the sigil, initials avatar and favicon; default initials of NAME
+
+      # ---- Links: every platform link can also take these ------------------------------------
+      # GITHUB_TEXT: GitHub                 # <PLATFORM>_TEXT: label (default: the platform name)
+      # GITHUB_NOTE: Code and side projects # <PLATFORM>_NOTE: second line, primary list only
+      # GITHUB_ICON: /media/github.png      # <PLATFORM>_ICON: your own icon (URL or /media/<file>)
+      # BUTTON_TARGET: _blank               # where web links open (_blank: a new tab)
+
+      # ---- Custom links ----------------------------------------------------------------------
+      # Comma-list form (littlelink-server compatible), used in the sample above:
+      #   CUSTOM_BUTTON_NAME  names, for ordering and analytics      CUSTOM_BUTTON_URL   their URLs
+      #   CUSTOM_BUTTON_TEXT  their labels                           CUSTOM_BUTTON_NOTE  their second lines
+      #   CUSTOM_BUTTON_ICON  per link: an image URL or /media/<file>, a platform name (etsy, kofi) or an emoji
+      # CUSTOM_BUTTON_COLOR: "#00F0FF,#3DFF8F"   # accent colour per link (#rgb or #rrggbb)
+      # CUSTOM_BUTTON_ALT_TEXT: ","              # alternative text per image icon
+      # CUSTOM_BUTTON_TEXT_COLOR: "#000000"      # accepted for littlelink-server; ignored (the theme sets text colour)
+      # Or one field per line, numbered 1 to 999 (gaps are fine; shown after the comma-list links):
+      # LINK_1_NAME: SHOP                   # name for ordering and analytics (default LINK1)
+      # LINK_1_URL: https://example.com/shop   # required
+      # LINK_1_TEXT: Visit my shop          # required: the label
+      # LINK_1_NOTE: Prints and stickers    # second line
+      # LINK_1_ICON: etsy                   # image URL, /media/<file>, platform name or emoji
+      # LINK_1_COLOR: "#F1641E"             # accent colour
+      # LINK_1_ALT: Shop logo               # alternative text for an image icon (LINK_1_ALT_TEXT also works)
+
+      # ---- Sections and featured card --------------------------------------------------------
+      # FEATURED_BUTTON: PORTFOLIO          # link shown as the big featured card; default the first primary link; none hides it
+      # FEATURED_TEXT: See my work          # featured card title; default the link's label
+      # FEATURED_IMAGE: /media/featured.jpg # picture on the featured card; default the link's icon
+      # SECTION_PRIMARY_TITLE: Uplinks      # heading of the large cards (theme default)
+      # SECTION_SECONDARY_TITLE: Around the web   # heading of the compact grid (theme default)
+      # LINKS_LABEL: Alex Rivera links      # accessible name of the primary list; default "<NAME> links"
+
+      # ---- Theme details (Neon top bar and corners) ------------------------------------------
+      # HUD_TITLE: alex_rivera              # top-left label; default NAME in snake_case
+      # HUD_SUFFIX: // link.sys             # Neon: text after the top-left label; "" hides it
+      # CLOCK_TIMEZONE: Europe/Lisbon       # Neon: time zone for a small clock; unset: no clock
+      # CLOCK_LABEL: LIS                    # Neon: label before the clock
+      # SHARE: https://links.example.com/   # Neon: URL for a Share button; unset: no button
+      # SHARE_TEXT: Share                   # Neon: Share button label
+      # CORNER_LEFT: sys:online             # Neon: desktop corner text, label:value pairs separated by |
+      # CORNER_RIGHT: node:home|host:links  # Neon: bottom-right corner text
+
+      # ---- Loader (boot sequence) ------------------------------------------------------------
+      # Tokens: {name} {first} {handle} {count} {platforms} {year}. Visitors can tap to skip it.
+      # BOOT_MODE: full                     # full, short (twice as fast), once (first visit only) or "off"
+      # BOOT_ENABLED: "true"                # "false" is the same as BOOT_MODE: off
+      # BOOT_LOG: "{handle}.sys booting|[OK] Mounted /home/guest|[OK] Reached target network.online|[OK] Loaded {platforms}|[OK] Linked {count} destinations"   # Neon: lines separated by |
+      # BOOT_PROMPT: guest@{handle}:~$$     # Neon: prompt on the last line
+      # BOOT_COMMAND: ./welcome.sh          # Neon: command after the prompt
+      # BOOT_HINT: booting · tap to skip    # skip hint (theme default)
+      # BOOT_GRANTED: Access granted        # shown when the loader completes (theme default)
+      # BOOT_QUESTION: who is {name}?       # Neural: the question typed on the loader
+      # BOOT_STAGES: Thinking…|Reading {count} links…|Writing answer…   # Neural and Opening Bell: status lines (theme default)
+      # INTRO_LABEL: AI brief · the thesis  # Opening Bell: label on the brief card (theme default)
+      # DISCLAIMER: Charts are decoration.  # Opening Bell: footer note (theme default); "" hides it
+      # BACKGROUND_WORDS: build|explore|signal|prompt|curiosity|create|connect|links   # Neural: drifting words
+
+      # ---- Footer ----------------------------------------------------------------------------
+      # COPYRIGHT: © {year} {name}          # footer copyright
+      # BACK_TO_TOP_TEXT: Back to top ↑     # footer link text
+
+      # ---- Search engines, share cards and browser -------------------------------------------
+      # OG_URL: https://links.example.com/  # your public address: canonical link and share cards
+      # LANG: en                            # page language, for example en or pt-PT
+      # META_TITLE: Alex Rivera — Links     # browser tab title; default "<NAME> — Links"
+      # META_DESCRIPTION: Builder | Writer | Night owl   # search description; default BIO
+      # META_AUTHOR: Alex Rivera            # author meta tag
+      # META_KEYWORDS: links,portfolio      # keywords meta tag
+      # META_INDEX_STATUS: index,follow     # robots meta tag; noindex,nofollow keeps it out of search engines
+      # OG_TITLE: Alex Rivera               # share card title; default NAME
+      # OG_DESCRIPTION: Builder | Writer    # share card text; default META_DESCRIPTION
+      # OG_SITE_NAME: Alex Rivera           # share card site name
+      # OG_IMAGE: https://links.example.com/media/card.png   # share card picture; default an http(s) AVATAR_URL
+      # OG_IMAGE_WIDTH: "1200"              # share card picture width in pixels
+      # OG_IMAGE_HEIGHT: "630"              # share card picture height in pixels
+      # TWITTER_CARD: summary               # summary or summary_large_image
+      # TWITTER_SITE: "@alex"               # X/Twitter account of the site
+      # TWITTER_CREATOR: "@alex"            # X/Twitter account of the author
+      # TWITTER_TITLE: Alex Rivera          # default NAME
+      # TWITTER_DESCRIPTION: Builder | Writer   # default META_DESCRIPTION
+      # TWITTER_IMAGE: https://links.example.com/media/card.png   # default OG_IMAGE
+      # FAVICON_URL: /media/favicon.svg     # default media/favicon.*, then a generated favicon
+      # APPLE_TOUCH_ICON_URL: /media/apple-touch-icon.png   # home-screen icon
+      # THEME_COLOR: "#07060D"              # browser UI colour; default the theme colour
+      # ROBOTS_TXT: "User-agent: *\nDisallow: /"   # the whole /robots.txt (\n for new lines); default allow all
+      # ROBOTS_ADDITIONAL_RULES: "Disallow: /media/"   # lines added to the default /robots.txt
+
+      # ---- Analytics (nothing is loaded unless you set it) -----------------------------------
+      # GA_TRACKING_ID: G-XXXXXXXXXX        # Google Analytics 4 measurement ID
+      # UMAMI_WEBSITE_ID: 00000000-0000-0000-0000-000000000000   # Umami website ID
+      # UMAMI_APP_URL: https://umami.example.com   # Umami address
+      # UMAMI_SCRIPT_NAME: script.js        # Umami script file name
+      # MATOMO_URL: https://matomo.example.com/   # Matomo address
+      # MATOMO_SITE_ID: "1"                 # Matomo site ID
+      # PLAUSIBLE_URL: https://plausible.io/js/script.js   # Plausible script URL
+      # PLAUSIBLE_DATA_DOMAIN: links.example.com   # Plausible site domain
+      # PLAUSIBLE_DATA_API: https://plausible.example.com/api/event   # optional Plausible event endpoint
+      # CLOUDFLARE_WEB_ANALYTICS: "false"   # "true" when Cloudflare Web Analytics is on, so the page allows its beacon
+
+      # ---- Server (rarely changed) -----------------------------------------------------------
+      # PORT: "3000"                        # port inside the container
+      # HOST: 0.0.0.0                       # bind address inside the container
+      # MEDIA_DIR: /app/media               # folder served at /media/
+      # RELEASE: my-build-1                 # shown in /healthcheck and the X-NeonLink-Release header; default the image revision
+      # SKIP_HEALTH_CHECK_LOGS: "false"     # "true" stops logging each health check
+      # NODE_ENV: production                # leave as is
+      # Accepted for littlelink-server and ignored (the theme owns them): DROP_SHADOW, THEME_OS, AVATAR_SIZE.
+
+      # ---- Every built-in platform (162) -----------------------------------------------------
+      # Set a variable to your link and its button appears with the logo. Each one also takes
+      # <PLATFORM>_TEXT, <PLATFORM>_NOTE and <PLATFORM>_ICON (see "Links" above). "set above" means the
+      # sample already uses it: edit that line above instead of uncommenting this one.
+      # BEGIN platform catalogue: generated by scripts/build_platform_docs.mjs from app/platforms.mjs
+      # FIVEHUNDREDPX: <link>                   # 500px
+      # AMAZON_AFFILIATE: <link>                # Amazon Affiliate
+      # AMAZON_MUSIC: <link>                    # Amazon Music
+      # AMAZON_WISHLIST: <link>                 # Amazon Wishlist
+      # ANILIST: <link>                         # AniList
+      # APP_STORE: <link>                       # App Store
+      # APPLE_MUSIC: <link>                     # Apple Music
+      # APPLE_PODCASTS: <link>                  # Apple Podcasts
+      # ARTSTATION: <link>                      # ArtStation
+      # AUDIUS: <link>                          # Audius
+      # BANDCAMP: <link>                        # Bandcamp
+      # BEHANCE: <link>                         # Behance
+      # BLOG: <link>                            # Blog
+      # BLUESKY: (set above)                    # Bluesky
+      # BUYMEACOFFEE: <link>                    # Buy Me a Coffee
+      # CALCOM: <link>                          # Cal.com
+      # CALENDLY: <link>                        # Calendly
+      # PHONE: <phone number>                   # Call me
+      # CASHAPP: <link>                         # Cash App
+      # CODEPEN: <link>                         # CodePen
+      # CODEWARS: <link>                        # Codewars
+      # CREDLY: <link>                          # Credly
+      # DEEZER: <link>                          # Deezer
+      # DESIGNBYHUMANS: <link>                  # Design By Hümans
+      # DEVTO: <link>                           # Dev.to
+      # DISCOGS: <link>                         # Discogs
+      # DISCORD: (set above)                    # Discord
+      # DOCKERHUB: <link>                       # Docker Hub
+      # DREAMWIDTH: <link>                      # Dreamwidth
+      # DRIBBBLE: <link>                        # Dribbble
+      # EMAIL: (set above)                      # Email
+      # EMAIL_ALT: <e-mail address>             # Email
+      # ETSY: <link>                            # Etsy
+      # FACEBOOK: <link>                        # Facebook
+      # FIGMA: <link>                           # Figma
+      # FIVERR: <link>                          # Fiverr
+      # FLICKR: <link>                          # Flickr
+      # FORGEJO: <link>                         # Forgejo
+      # GEOCACHING: <link>                      # Geocaching
+      # GHOST: <link>                           # Ghost
+      # GITBUCKET: <link>                       # GitBucket
+      # GITEA: <link>                           # Gitea
+      # GITHUB: (set above)                     # GitHub
+      # GITLAB: <link>                          # GitLab
+      # GOFUNDME: <link>                        # GoFundMe
+      # GOODREADS: <link>                       # Goodreads
+      # GOOGLE_CALENDAR: <link>                 # Google Calendar
+      # GOOGLE_DRIVE: <link>                    # Google Drive
+      # GOOGLEMAPS: <link>                      # Google Maps
+      # GOOGLE_PLAY: <link>                     # Google Play
+      # GOOGLE_PODCASTS: <link>                 # Google Podcasts
+      # GOOGLESCHOLAR: <link>                   # Google Scholar
+      # HACKER_NEWS: <link>                     # Hacker News
+      # HASHNODE: <link>                        # Hashnode
+      # HUGGINGFACE: <link>                     # Hugging Face
+      # INSTAGRAM: (set above)                  # Instagram
+      # INSTANTGAMING: <link>                   # Instant Gaming
+      # INTERNETARCHIVE: <link>                 # Internet Archive
+      # JETPHOTOS: <link>                       # JetPhotos
+      # KAGGLE: <link>                          # Kaggle
+      # KAKAOTALK: <link>                       # KakaoTalk
+      # KEYBASE: <link>                         # Keybase
+      # KICK: <link>                            # Kick
+      # KICKSTARTER: <link>                     # Kickstarter
+      # KIT: <link>                             # Kit
+      # KOFI: <link>                            # Ko-fi
+      # LASTFM: <link>                          # Last.fm
+      # LEETCODE: <link>                        # LeetCode
+      # LEMMY: <link>                           # Lemmy
+      # LETTERBOXD: <link>                      # Letterboxd
+      # LINE: <link>                            # Line Messenger
+      # LINKED_IN: (set above)                  # LinkedIn
+      # MAILCHIMP: <link>                       # Mailchimp
+      # MAKERWORLD: <link>                      # Makerworld
+      # MASTODON: (set above)                   # Mastodon
+      # MATRIX: <link>                          # Matrix
+      # MEDIUM: <link>                          # Medium
+      # MEETUP: <link>                          # Meetup
+      # FACEBOOK_MESSENGER: <link>              # Messenger
+      # MICRO_BLOG: <link>                      # Microblog
+      # MIXCLOUD: <link>                        # Mixcloud
+      # MYANIMELIST: <link>                     # MyAnimeList
+      # NEOCITIES: <link>                       # Neocities
+      # NEXTCLOUD: <link>                       # Nextcloud
+      # NOSTR: <link>                           # Nostr
+      # NOTION: <link>                          # Notion
+      # OBSIDIAN: <link>                        # Obsidian
+      # ONLYFANS: <link>                        # OnlyFans
+      # ORCID: <link>                           # ORCID
+      # OSU: <link>                             # osu!
+      # OVERCAST: <link>                        # Overcast
+      # PATREON: <link>                         # Patreon
+      # PAYPAL: <link>                          # PayPal
+      # PEERTUBE: <link>                        # PeerTube
+      # PILLOWFORT: <link>                      # Pillowfort
+      # PINTEREST: <link>                       # Pinterest
+      # PIXELFED: <link>                        # Pixelfed
+      # PLAYSTATION: <link>                     # PlayStation
+      # POCKET_CASTS: <link>                    # Pocket Casts
+      # POLYWORK: <link>                        # Polywork
+      # PRINTABLES: <link>                      # Printables
+      # PRIVATEBIN: <link>                      # Private Bin
+      # PRODUCT_HUNT: <link>                    # Product Hunt
+      # REDDIT: <link>                          # Reddit
+      # RSS: <link>                             # RSS
+      # RUMBLE: <link>                          # Rumble
+      # SEMANTICSCHOLAR: <link>                 # Semantic Scholar
+      # SERIALIZD: <link>                       # Serializd
+      # SESSION: <link>                         # Session
+      # SHAZAM: <link>                          # Shazam
+      # SHOPIFY: <link>                         # Shop
+      # SIGNAL: <link>                          # Signal
+      # SIMPLEX: <link>                         # Simplex
+      # SKOOB: <link>                           # Skoob
+      # SLACK: <link>                           # Slack
+      # SNAPCHAT: <link>                        # Snapchat
+      # SOUND_CLOUD: <link>                     # SoundCloud
+      # SPACEHEY: <link>                        # SpaceHey
+      # SPOTIFY: (set above)                    # Spotify
+      # STACKOVERFLOW: <link>                   # Stack Overflow
+      # STATUS: <link>                          # Status
+      # STEAM: <link>                           # Steam
+      # STRAVA: <link>                          # Strava
+      # STREAMLABS: <link>                      # Streamlabs
+      # SUBSTACK: <link>                        # Substack
+      # TEESPRING: <link>                       # Teespring
+      # TELEGRAM: <link>                        # Telegram
+      # SMS: <phone number>                     # Text me
+      # TPDB: <link>                            # The Poster Database
+      # THESTORYGRAPH: <link>                   # The StoryGraph
+      # THREADS: <link>                         # Threads
+      # THREEMA: <link>                         # Threema
+      # TIDAL: <link>                           # Tidal
+      # TIKTOK: <link>                          # TikTok
+      # TRAKT: <link>                           # Trakt
+      # TRIPADVISOR: <link>                     # Tripadvisor
+      # TUMBLR: <link>                          # Tumblr
+      # TWITCH: <link>                          # Twitch
+      # TWITTER: <link>                         # Twitter
+      # UNSPLASH: <link>                        # Unsplash
+      # UNTAPPD: <link>                         # Untappd
+      # UPWORK: <link>                          # Upwork
+      # VENMO: <link>                           # Venmo
+      # VERO: <link>                            # VERO
+      # VIBER: <link>                           # Viber
+      # VIMEO: <link>                           # Vimeo
+      # VRCHAT: <link>                          # VRChat
+      # VSCO: <link>                            # VSCO
+      # WEBSITE: <link>                         # Website
+      # WECHAT: <link>                          # WeChat
+      # WEIBO: <link>                           # Weibo
+      # WELLFOUND: <link>                       # Wellfound
+      # WHATSAPP: <link>                        # WhatsApp
+      # WORDPRESS: <link>                       # WordPress
+      # X: <link>                               # X
+      # XBOX: <link>                            # Xbox
+      # XING: <link>                            # Xing
+      # YELP: <link>                            # Yelp
+      # YOUTUBE: (set above)                    # YouTube
+      # YOUTUBE_MUSIC: <link>                   # YouTube Music
+      # ZELLE: <link>                           # Zelle
+      # ZOOM: <link>                            # Zoom
+      # END platform catalogue

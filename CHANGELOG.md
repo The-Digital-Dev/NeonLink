@@ -5,6 +5,24 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- `compose.yaml` is now the file users download: it runs the published image
+  (`ghcr.io/the-digital-dev/neonlink:latest`) on http://127.0.0.1:8080/ and lists every setting,
+  grouped by section with a one-line explanation and its default, plus all 162 platform variables.
+  To hide an element, set it to `""` (an empty `KEY:` line passes nothing in Compose).
+  `docker compose up -d` works with the sample profile straight away; pictures go in `./media`.
+- Building from a checkout moved to `compose.dev.yaml` (`make up`, still on port 4191).
+- README quick start: download `compose.yaml`, edit, run. Links to the live theme demos.
+- Repository links point at `github.com/The-Digital-Dev/NeonLink`.
+- Deployment guide: Portainer needs an absolute media folder; the Cloudflare Tunnel example keeps the
+  hardened container settings.
+
+### Added
+
+- `make check` fails when a setting the app reads, or a built-in platform, is missing from
+  `compose.yaml`; `scripts/build_platform_docs.mjs` keeps the platform catalogue there in sync.
+
 ## [0.1.0] - 2026-11-16
 
 First public release.

@@ -1,8 +1,9 @@
 # NeonLink. Node 20+ is the only requirement; there is nothing to install.
 PLAYWRIGHT_PATH ?=
-BASE_URL ?= http://127.0.0.1:4191/
-# Another Compose file: make up COMPOSE=path/to/compose.yaml
-COMPOSE ?= compose.yaml
+HOST_PORT ?= 4191
+BASE_URL ?= http://127.0.0.1:$(HOST_PORT)/
+# make up builds from this checkout (compose.yaml + compose.dev.yaml). Other files: make up COMPOSE="a.yaml b.yaml"
+COMPOSE ?= compose.yaml compose.dev.yaml
 IMAGE ?= neonlink:local
 PLATFORMS ?= linux/amd64,linux/arm64
 
@@ -12,12 +13,13 @@ check:
 test:
 	node --test tests/*.test.mjs
 verify: check test
+DC = HOST_PORT="$(HOST_PORT)" docker compose $(foreach f,$(COMPOSE),-f "$(f)")
 up:
-	docker compose -f "$(COMPOSE)" up -d --build
+	$(DC) up -d --build
 down:
-	docker compose -f "$(COMPOSE)" down
+	$(DC) down
 logs:
-	docker compose -f "$(COMPOSE)" logs -f --tail=50
+	$(DC) logs -f --tail=50
 browser:
 	BASE_URL="$(BASE_URL)" PLAYWRIGHT_PATH="$(PLAYWRIGHT_PATH)" node scripts/browser_check.mjs
 # README screenshots, social card and hero animation from the sample profile (Playwright, ffmpeg, img2webp).

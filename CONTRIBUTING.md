@@ -7,7 +7,10 @@ Thanks for helping. Bug reports, theme ideas and pull requests are all welcome.
 - For anything bigger than a small fix, open an issue first so we can agree on the approach.
 - NeonLink has **no runtime dependencies** and no build step. Please keep it that way.
 - Every visible word is configuration. New behaviour gets a new optional environment variable with a
-  generic default, documented in the README tables (`make check` enforces this).
+  generic default, documented in [docs/configuration.md](docs/configuration.md) and listed in
+  [compose.yaml](compose.yaml), commented out with its default (`make check` enforces both). New
+  platforms go in `app/platforms.mjs`; then run `node scripts/build_platform_docs.mjs` to refresh
+  docs/platforms.md and the catalogue at the bottom of compose.yaml.
 - Keep littlelink-server variable names working.
 
 ## Develop
@@ -16,9 +19,13 @@ You need Node.js 20 or newer and, for the container, Docker.
 
 ```bash
 make verify     # repository and leak check + unit tests (nothing to install)
-make up         # sample page on http://127.0.0.1:4191/
+make up         # build from this checkout and run the sample on http://127.0.0.1:4191/
 make browser    # browser checks at 390, 900 and 1440 px (needs Playwright with Chromium)
 ```
+
+`make up` uses `compose.yaml` (the file users download, with the published image) plus
+`compose.dev.yaml`, which builds the image from your checkout and mounts the sample avatar from
+`examples/media/`. `make down` stops it.
 
 `make media` regenerates every README picture and the hero animation from the sample profile, and
 `make demo` writes static copies of each theme to `dist/demo/`.
