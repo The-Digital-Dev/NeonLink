@@ -1,5 +1,8 @@
 # Putting NeonLink online
 
+Start from [compose.yaml](../compose.yaml): it has the image, the safe container settings and every
+setting listed. The snippets below show only what each setup adds.
+
 NeonLink is one container that listens on port 3000 and serves a single page. It needs no
 database, no volume (except an optional read-only media folder) and no secrets. Put it behind
 whatever already serves your other sites.
@@ -75,9 +78,12 @@ NeonLink sends its own security headers (Content-Security-Policy, `X-Frame-Optio
 
 ## Portainer
 
-Create a stack (**Stacks → Add stack → Web editor**), paste the Compose service above with your
-values, and deploy. To change the page later, edit the stack's environment values and choose
-**Update the stack**. For the media folder, use a bind mount to a folder on the host.
+Create a stack (**Stacks → Add stack → Web editor**), paste [compose.yaml](../compose.yaml) (or the
+service above) with your values, and deploy. Change the `./media` volume to an absolute folder on the
+host, for example `/srv/neonlink/media:/app/media:ro`, because a relative path in the web editor does
+not point at a folder you can reach. If a reverse proxy runs in another stack, add NeonLink to the
+proxy's network instead of publishing a port. To change the page later, edit the stack's environment
+values and choose **Update the stack**.
 
 ## Cloudflare Tunnel
 
@@ -89,6 +95,8 @@ services:
   links:
     image: ghcr.io/the-digital-dev/neonlink:latest
     read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
     environment:
       NAME: Alex Rivera
       CLOUDFLARE_WEB_ANALYTICS: "false"   # "true" if you turn on Cloudflare Web Analytics

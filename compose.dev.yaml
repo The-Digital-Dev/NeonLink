@@ -1,0 +1,16 @@
+# Developers: builds the image from this checkout and serves the sample avatar from examples/media.
+# Used on top of compose.yaml, which holds every setting:
+#   make up      (or: HOST_PORT=4191 docker compose -f compose.yaml -f compose.dev.yaml up -d --build)
+#   -> http://127.0.0.1:4191/
+name: neonlink-dev
+
+services:
+  links:
+    build:
+      context: .
+      args:
+        SOURCE_REVISION: ${SOURCE_REVISION:-development}
+    image: neonlink:local
+    pull_policy: build
+    volumes:
+      - ./examples/media:/app/media:ro   # replaces ./media (Compose merges volumes by target)

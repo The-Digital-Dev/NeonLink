@@ -7,8 +7,8 @@
 <p align="center"><strong>Your links, lit up.</strong> A self-hosted link-in-bio page with a cyberpunk boot sequence, configured entirely with Docker environment variables.</p>
 
 <p align="center">
-  <a href="https://github.com/The-Digital-Dev/neonlink/actions/workflows/ci.yml"><img src="https://github.com/The-Digital-Dev/neonlink/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
-  <a href="https://github.com/The-Digital-Dev/neonlink/pkgs/container/neonlink"><img src="https://img.shields.io/badge/image-ghcr.io-2496ED?logo=docker&logoColor=white" alt="Container image on GitHub Container Registry"></a>
+  <a href="https://github.com/The-Digital-Dev/NeonLink/actions/workflows/ci.yml"><img src="https://github.com/The-Digital-Dev/NeonLink/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
+  <a href="https://github.com/The-Digital-Dev/NeonLink/pkgs/container/neonlink"><img src="https://img.shields.io/badge/image-ghcr.io-2496ED?logo=docker&logoColor=white" alt="Container image on GitHub Container Registry"></a>
   <img src="https://img.shields.io/badge/arch-amd64%20%7C%20arm64-00F0FF" alt="Architectures: amd64 and arm64">
   <img src="https://img.shields.io/badge/runtime%20dependencies-0-3DFF8F" alt="Zero runtime dependencies">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-FFE600" alt="MIT licence"></a>
@@ -23,7 +23,11 @@
 </p>
 
 <p align="center">
-  <strong>Live demos:</strong> Neon · Neural · Opening Bell <em>(coming soon on GitHub Pages)</em>
+  <strong>Live demos:</strong>
+  <a href="https://the-digital-dev.github.io/NeonLink/neon/">Neon</a> ·
+  <a href="https://the-digital-dev.github.io/NeonLink/neural/">Neural</a> ·
+  <a href="https://the-digital-dev.github.io/NeonLink/opening-bell/">Opening Bell</a> ·
+  <a href="https://the-digital-dev.github.io/NeonLink/neon/all-platforms/">every platform</a>
 </p>
 
 No database, no admin panel, no build step: set the variables, start the container, and the page is
@@ -63,7 +67,21 @@ are regenerated from [compose.yaml](compose.yaml) with `make media`.
 
 ## Quick start (30 seconds)
 
-**Docker:**
+**Docker Compose** (recommended): download the ready-made file, then start it.
+
+```bash
+mkdir -p neonlink/media && cd neonlink
+curl -fsSLO https://raw.githubusercontent.com/The-Digital-Dev/NeonLink/main/compose.yaml
+docker compose up -d
+```
+
+Open http://127.0.0.1:8080/ to see the sample page. Then open `compose.yaml` in any text editor:
+the sample profile is at the top, and **every other setting is listed below it**, switched off with
+`#` and showing its default, down to all 162 platforms. Change a value or remove a `#`, run
+`docker compose up -d` again, and reload. For your own picture, put `avatar.jpg` in the `media`
+folder next to the file. If port 8080 is taken, put `HOST_PORT=8090` in a `.env` file next to it.
+
+**Docker run** (no file):
 
 ```bash
 docker run -d --name neonlink -p 127.0.0.1:8080:3000 --read-only \
@@ -72,43 +90,17 @@ docker run -d --name neonlink -p 127.0.0.1:8080:3000 --read-only \
   ghcr.io/the-digital-dev/neonlink:latest
 ```
 
-Open http://127.0.0.1:8080/. Change a value, run the command again (after `docker rm -f neonlink`),
-and reload.
+To change it, run `docker rm -f neonlink` and the command again with your values.
 
-**Docker Compose:** save this as `compose.yaml`, then run `docker compose up -d`.
-
-```yaml
-services:
-  links:
-    image: ghcr.io/the-digital-dev/neonlink:latest
-    restart: unless-stopped
-    read_only: true
-    cap_drop: [ALL]
-    security_opt: ["no-new-privileges:true"]
-    ports:
-      - "127.0.0.1:8080:3000"
-    volumes:
-      - ./media:/app/media:ro      # optional: put avatar.jpg here
-    environment:
-      NAME: Alex Rivera
-      BIO: Builder | Writer | Night owl
-      THEME: neon                  # or neural, opening-bell
-      GITHUB: https://github.com/alex
-      LINKED_IN: https://www.linkedin.com/in/alex
-      EMAIL: alex@example.com
-      CUSTOM_BUTTON_NAME: PORTFOLIO
-      CUSTOM_BUTTON_TEXT: See my work
-      CUSTOM_BUTTON_URL: https://example.com/
-```
-
-The page is rendered at start-up, so `docker compose up -d` after an edit applies it. Without
-Docker: `HOST=127.0.0.1 MEDIA_DIR=./media node app/server.mjs` with Node.js 20 or newer and the
-variables in the environment (the defaults bind every interface and read `/app/media`).
+The page is rendered at start-up, so a change shows after the container is recreated. Without
+Docker: `HOST=127.0.0.1 MEDIA_DIR=./media node app/server.mjs` from a checkout, with Node.js 20 or
+newer and the variables in the environment.
 
 ## Make it yours
 
 Every visible word and every link is an environment variable, and all of them are optional. These
-are the ones most people change; the [configuration reference](docs/configuration.md) has all of them.
+are the ones most people change. All of them are listed in [compose.yaml](compose.yaml) and explained in the
+[configuration reference](docs/configuration.md).
 
 | Variable | Example | What it does |
 | --- | --- | --- |
@@ -219,7 +211,7 @@ working. What changes:
 
 ```bash
 make verify     # repository and leak check + unit tests (Node 20+, nothing to install)
-make up         # sample page on http://127.0.0.1:4191/
+make up         # sample page built from this checkout on http://127.0.0.1:4191/ (compose.dev.yaml)
 make browser    # browser checks at 390, 900 and 1440 px (Playwright)
 make media      # regenerate screenshots and the hero animation
 make demo       # static copies of every theme in dist/demo/
@@ -234,6 +226,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Contributors and coding agents also foll
 | `app/platforms.mjs` | Built-in platform catalogue |
 | `app/themes/<name>/` | Themes: markup, CSS, scripts, fonts |
 | `app/public/` | Shared files: platform icons, analytics loader |
+| `compose.yaml` | The user's file: sample profile and every setting |
+| `compose.dev.yaml` | Developer override: builds from the checkout, sample avatar |
 | `examples/media/` | The sample avatar |
 | `tests/` | Unit and HTTP tests (`node --test`) |
 | `scripts/` | Repository and leak checks, browser checks, picture capture, static export |
@@ -244,7 +238,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Contributors and coding agents also foll
 - An optional admin page with drag-and-drop link ordering and picture upload, keeping environment
   variables as the defaults.
 - More coloured platform logos and more themes.
-- Hosted live demos on GitHub Pages.
 
 Ideas and theme proposals are welcome in the issues.
 

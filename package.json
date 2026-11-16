@@ -15,13 +15,13 @@
     "demo": "node scripts/export_static.mjs --out dist/demo"
   },
   "author": "Digital Dev",
-  "homepage": "https://github.com/The-Digital-Dev/neonlink",
+  "homepage": "https://github.com/The-Digital-Dev/NeonLink",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/The-Digital-Dev/neonlink.git"
+    "url": "git+https://github.com/The-Digital-Dev/NeonLink.git"
   },
   "bugs": {
-    "url": "https://github.com/The-Digital-Dev/neonlink/issues"
+    "url": "https://github.com/The-Digital-Dev/NeonLink/issues"
   },
   "keywords": [
     "link-in-bio",

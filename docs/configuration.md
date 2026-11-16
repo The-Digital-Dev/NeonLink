@@ -1,10 +1,13 @@
 # Configuration reference
 
-Every setting NeonLink reads. The [README](../README.md#make-it-yours) lists the ones most people change.
+Every setting NeonLink reads. The [README](../README.md#make-it-yours) lists the ones most people change,
+and [compose.yaml](../compose.yaml) lists all of them, ready to switch on by removing the `#`.
 
 Every visible word and every link is an environment variable. All variables are optional.
 Lists are comma-separated, and items in the same position belong together. Write `\,` to keep a
 comma inside a list item (for example in a label). In Compose, a literal `$` is written `$$`.
+Where a setting says "empty hides it", write empty quotes in Compose (`AVATAR_BADGE: ""`): a bare
+`AVATAR_BADGE:` line is null in YAML, so Compose passes nothing and the default stays.
 
 ## Identity
 
